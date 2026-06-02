@@ -100,7 +100,7 @@ images:
 ## Markdown features
 
 - **Image captions:** `![caption](./image.png)` becomes a Ghost `figure` with a `figcaption` (the alt text is used as the caption). Without alt text, the image renders with no caption.
-- **Video embed:** `::video <url>` on its own line → a YouTube or Vimeo embed. With a caption: `::video <url> | My caption`.
+- **Video embed:** `::video <url>` on its own line → an embed from **YouTube** (including **Shorts**, rendered vertical 9:16), **Vimeo**, **Odysee** (watch or embed URL) and **Rumble** (embed URL). With a caption: `::video <url> | My caption`. Handy for independent press publishing on alternative platforms.
 - **Product Card:** the `ad` block in the front-matter generates a native Ghost `kg-product-card`, with star rating and an optional disclaimer.
 - **Historical date:** `historical_date` inserts a block at the top of the post (CSS class configurable via `HISTORICAL_DATE_CLASS`), meant for the theme to display in place of the publish date.
 
@@ -172,7 +172,7 @@ If the slug already exists, it runs `posts.edit` and **preserves the original st
 
 ## Known limitations
 
-- **No native video upload** yet — use `::video` with YouTube/Vimeo.
+- **No native video upload** yet — use `::video` with YouTube/Vimeo/Odysee/Rumble.
 - **Non-existent tags:** if you pass a tag that doesn't exist in Ghost, it gets created. Use exact canonical names to avoid duplicates.
 
 ---
