@@ -1,176 +1,192 @@
 # ghost-md-publisher
 
-CLI en Node.js para publicar en **Ghost** desde un archivo `.md` con front-matter YAML. Sube las imágenes (procesadas con `sharp` — resize, optimización, formato, EXIF), soporta tarjetas nativas de Ghost (Product Card, embeds de vídeo, pies de foto) y crea el post como **draft** vía Admin API.
+A Node.js CLI to publish to **Ghost** from a `.md` file with YAML front-matter. It uploads images (processed with `sharp` — resize, optimization, format, EXIF), supports native Ghost cards (Product Card, video embeds, image captions) and creates the post as a **draft** via the Admin API.
 
-Si el slug ya existe, **actualiza** el post existente en lugar de duplicar.
+If the slug already exists, it **updates** the existing post instead of duplicating it.
 
 ---
 
-## Por qué existe
+## Why it exists
 
-Publicar una pieza con varias imágenes a mano en el editor de Ghost son ~15 minutos de fontanería por pieza: pegar el cuerpo, subir las imágenes una a una, rellenar título/slug/excerpt/tags, montar tarjetas. Este publisher lo resuelve con un comando:
+Publishing a piece with several images by hand in the Ghost editor takes ~15 minutes of plumbing per post: paste the body, upload each image, fill in title/slug/excerpt/tags, build cards. This publisher does it in one command:
 
 ```bash
-ghost-publish ./mi-articulo/
+ghost-publish ./my-article/
 ```
 
-Escribes en Markdown (en tu editor, con control de versiones si quieres) y publicas sin tocar el navegador.
+You write in Markdown (in your editor, version-controlled if you like) and publish without touching the browser.
 
 ---
 
-## Instalación
+## Installation
 
 ```bash
 git clone https://github.com/OksigeniaSL/ghost-md-publisher.git
 cd ghost-md-publisher
 npm install
 cp .env.example .env
-# rellena .env
+# fill in .env
 ```
 
-### Crear la Admin API Key en Ghost
+### Create the Admin API Key in Ghost
 
-1. Entra al admin: `https://tu-sitio.com/ghost/`
+1. Open the admin: `https://your-site.com/ghost/`
 2. **Settings → Integrations → + Add custom integration**
-3. Ponle un nombre (p.ej. *"ghost-md-publisher"*).
-4. Copia el campo **Admin API Key** entero (formato `id:secret`) en `.env` como `GHOST_ADMIN_API_KEY`.
+3. Give it a name (e.g. *"ghost-md-publisher"*).
+4. Copy the whole **Admin API Key** (format `id:secret`) into `.env` as `GHOST_ADMIN_API_KEY`.
 
 ---
 
-## Estructura de una pieza
+## Structure of a piece
 
 ```
-mi-articulo/
-├── articulo.md
+my-article/
+├── articulo.md          # front-matter + markdown body
 ├── encabezado.png       # feature image
 ├── interior_1.png
-├── promo.png            # imagen del Product Card (opcional)
-└── .cache/              # generado automático: imágenes procesadas (gitignore)
+├── promo.png            # Product Card image (optional)
+└── .cache/              # auto-generated: processed images (gitignored)
 ```
 
-### Front-matter del `articulo.md`
+> The CLI looks for `articulo.md` when you pass a folder. You can also pass a `.md` file directly.
+
+### Front-matter of `articulo.md`
 
 ```yaml
 ---
-title:        "Título del artículo"
-slug:         "titulo-del-articulo"
-excerpt:      "Resumen breve..."              # max 300 chars
-tags:         ["Tecnología", "Tutoriales"]
+title:        "Article title"
+slug:         "article-title"
+excerpt:      "Short summary..."               # max 300 chars
+tags:         ["Technology", "Tutorials"]
 feature_image: ./encabezado.png
-status:       draft                           # draft | published | scheduled
-author:       jane-doe                        # opcional, slug del autor en Ghost
-# authors:    [jane-doe, john-roe]            # alternativa para co-firmas (pisa a `author`)
-template:     custom-wide-feature-image       # opcional — slug de un custom-*.hbs del theme
-historical_date: "2 de abril de 1520"         # opcional — fecha de evento (string libre, soporta a.C.)
-historical_year: 1520                         # opcional — entero (negativo para a.C.); se inyecta como data-year
+status:       draft                            # draft | published | scheduled
+author:       jane-doe                         # optional, author slug in Ghost
+# authors:    [jane-doe, john-roe]             # alternative for co-bylines (overrides `author`)
+template:     custom-wide-feature-image        # optional — slug of a custom-*.hbs in the theme
+historical_date: "2 April 1520"                # optional — event date (free string, supports BC)
+historical_year: 1520                          # optional — integer (negative for BC); injected as data-year
 
-# Product Card (bloque promocional opcional)
+# Product Card (optional promo block)
 ad:
-  title:        "Texto gancho del producto"
-  product_name: "Nombre del producto"
-  description:  "Descripción del producto..."
+  title:        "Product hook text"
+  product_name: "Product name"
+  description:  "Product description..."
   image:        ./promo.png
-  button_text:  "COMPRAR AHORA"
+  button_text:  "BUY NOW"
   button_url:   "https://example.com/buy"
   rating:       5
-  disclaimer:   "Texto legal opcional"
+  disclaimer:   "Optional legal text"
 
-# Procesamiento de imágenes (todo opcional)
+# Image processing (all optional)
 processing:
   enabled:    true
-  max_width:  1920          # redimensiona si excede
+  max_width:  1920          # resize if larger
   format:     auto          # auto | webp | jpeg | png | preserve
   quality:    82
 
-# Overrides de metadata por imagen (opcional)
+# Per-image metadata overrides (optional)
 images:
   encabezado.png:
-    description: "Texto descriptivo de la imagen."
+    description: "Descriptive alt text for the image."
 ---
 
-(cuerpo en markdown)
+(markdown body)
 ```
 
-**Campos obligatorios:** `title`, `slug`, `tags`. Si añades `ad`, son obligatorios `ad.title`, `ad.description`, `ad.button_text`, `ad.button_url`.
+**Required fields:** `title`, `slug`, `tags`. If you add `ad`, then `ad.title`, `ad.description`, `ad.button_text` and `ad.button_url` are required.
 
 ---
 
-## Funciones de Markdown
+## Markdown features
 
-- **Pies de foto:** `![pie de foto](./imagen.png)` se convierte en un `figure` de Ghost con `figcaption` (el alt se usa como caption). Sin alt, imagen sin pie.
-- **Embed de vídeo:** `::video <url>` en una línea propia → embed de YouTube o Vimeo. Con caption: `::video <url> | Mi caption`.
-- **Product Card:** el bloque `ad` del front-matter genera un `kg-product-card` nativo de Ghost, con estrellas y disclaimer opcional.
-- **Fecha histórica:** `historical_date` inserta un bloque al inicio del post (clase CSS configurable con `HISTORICAL_DATE_CLASS`), pensado para que el theme la muestre en lugar de la fecha de publicación.
-
----
-
-## Procesamiento de imágenes
-
-Con `sharp` instalado (incluido en deps), cada imagen se procesa antes de subir:
-
-1. **Resize** a `processing.max_width` (default 1920) preservando aspect ratio.
-2. **Conversión de formato:** por defecto PNG → WebP (mejor compresión sin pérdida visible).
-3. **EXIF:** Software, y `Copyright`/`Artist` si los defines en `.env` (`IMAGE_COPYRIGHT`, `IMAGE_ARTIST`).
-4. **Cache:** las versiones procesadas quedan en `.cache/processed/` (clave SHA1 sobre mtime + config). Si la imagen no cambia, se reutiliza.
-
-Para deshabilitar el procesamiento de una pieza: `processing.enabled: false`.
+- **Image captions:** `![caption](./image.png)` becomes a Ghost `figure` with a `figcaption` (the alt text is used as the caption). Without alt text, the image renders with no caption.
+- **Video embed:** `::video <url>` on its own line → a YouTube or Vimeo embed. With a caption: `::video <url> | My caption`.
+- **Product Card:** the `ad` block in the front-matter generates a native Ghost `kg-product-card`, with star rating and an optional disclaimer.
+- **Historical date:** `historical_date` inserts a block at the top of the post (CSS class configurable via `HISTORICAL_DATE_CLASS`), meant for the theme to display in place of the publish date.
 
 ---
 
-## Uso
+## Image processing
+
+With `sharp` installed (included in deps), each image is processed before upload:
+
+1. **Resize** to `processing.max_width` (default 1920), preserving aspect ratio.
+2. **Format conversion:** PNG → WebP by default (better compression with no visible loss).
+3. **EXIF:** Software, plus `Copyright`/`Artist` if you set them in `.env` (`IMAGE_COPYRIGHT`, `IMAGE_ARTIST`).
+4. **Cache:** processed versions are stored in `.cache/processed/` (key = SHA1 over mtime + config). If the image hasn't changed, the cache is reused.
+
+To disable processing for a piece: `processing.enabled: false`.
+
+---
+
+## Usage
 
 ```bash
-# Dry run — no manda nada, imprime el payload que se enviaría
-ghost-publish --dry-run ./mi-articulo/
+# Dry run — sends nothing, prints the payload that would be sent
+ghost-publish --dry-run ./my-article/
 
-# Publicar (crea draft o actualiza si ya existe el slug)
-ghost-publish ./mi-articulo/
+# Publish (creates a draft, or updates if the slug already exists)
+ghost-publish ./my-article/
 
-# También por archivo directo
-ghost-publish ./mi-articulo/articulo.md
+# Also works on a single file
+ghost-publish ./my-article/articulo.md
 ```
 
-El comando devuelve la URL pública del post (si está publicado) y la URL del editor de Ghost para revisar el draft.
+The command returns the public URL of the post (if published) and the Ghost editor URL to review the draft.
 
-| Flag | Efecto |
+| Flag | Effect |
 |---|---|
-| `--dry-run`, `-n` | No envía nada a Ghost. Imprime el payload final. |
-| `--help`, `-h` | Ayuda. |
-| `DEBUG=1` (env) | Stack traces completos en errores. |
+| `--dry-run`, `-n` | Sends nothing to Ghost. Prints the final payload. |
+| `--help`, `-h` | Help. |
+| `DEBUG=1` (env) | Full stack traces on errors. |
 
 ---
 
-## Límites de Ghost validados antes de enviar
+## Environment variables (`.env`)
+
+| Variable | Purpose |
+|---|---|
+| `GHOST_URL` | Ghost site URL (no trailing slash). |
+| `GHOST_ADMIN_API_KEY` | Admin API key, format `id:secret`. |
+| `GHOST_API_VERSION` | Admin API version (default `v5.0`). |
+| `DEFAULT_AUTHOR_SLUG` | Fallback author when a piece doesn't set `author`. |
+| `IMAGE_COPYRIGHT`, `IMAGE_ARTIST` | Optional EXIF metadata for uploaded images. |
+| `HISTORICAL_DATE_CLASS` | CSS class for the historical-date block (default `historical-date`). |
+| `AD_DISCLAIMER` | Default disclaimer text under the Product Card. |
+
+---
+
+## Ghost limits validated before sending
 
 - `custom_excerpt`: 300 chars · `feature_image_alt`: 191 chars · `feature_image_caption`: 65535 chars.
 
-El publisher valida estos límites **antes** del round-trip, para no gastar subidas de imágenes en un error al final del flujo.
+The publisher validates these limits **before** the round-trip, so you don't waste image uploads on an error at the end of the flow.
 
 ---
 
-## Comportamiento del upsert
+## Upsert behavior
 
-Si el slug ya existe, hace `posts.edit` y **preserva el status original** (no degrada `published` a `draft` aunque el front-matter diga `draft`). El status del front-matter solo manda en la creación inicial.
+If the slug already exists, it runs `posts.edit` and **preserves the original status** (it won't downgrade `published` to `draft` even if the front-matter says `draft`). The front-matter status only applies on initial creation.
 
 ---
 
-## Limitaciones conocidas
+## Known limitations
 
-- **No subimos vídeos propios** todavía — usa `::video` con YouTube/Vimeo.
-- **Tags inexistentes:** si pasas un tag que no existe en Ghost, lo crea. Usa los nombres canónicos exactos para evitar duplicados.
+- **No native video upload** yet — use `::video` with YouTube/Vimeo.
+- **Non-existent tags:** if you pass a tag that doesn't exist in Ghost, it gets created. Use exact canonical names to avoid duplicates.
 
 ---
 
 ## Roadmap
 
-- [ ] `--watch` — re-publica al cambiar el `.md`.
-- [ ] Validación de tags contra los existentes en Ghost (warn antes de crear nuevos).
-- [ ] Subida de feature video.
-- [ ] Soporte `members-only` / paywall desde front-matter.
-- [ ] Instalación global (`npm install -g`).
+- [ ] `--watch` — re-publish on `.md` change.
+- [ ] Validate tags against existing ones in Ghost (warn before creating new ones).
+- [ ] Feature video upload.
+- [ ] `members-only` / paywall support from front-matter.
+- [ ] Global install (`npm install -g`).
 
 ---
 
-## Licencia
+## License
 
 MIT — © Oksigenia.
