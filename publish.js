@@ -6,12 +6,14 @@ require('dotenv').config();
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { getClient } = require('./lib/ghost-client');
+const { getClient, verifyClient } = require('./lib/ghost-client');
 const { readArticle } = require('./lib/frontmatter');
 const { findLocalImages, uploadAll, rewriteContent } = require('./lib/images');
 const { render } = require('./lib/markdown');
 const { upsertPost } = require('./lib/posts');
 const { renderAd } = require('./lib/ad');
+const { ensureEnv } = require('./lib/setup');
+const { t } = require('./lib/i18n');
 
 function parseArgs(argv) {
   const args = { dryRun: false, target: null };
@@ -90,8 +92,13 @@ async function main() {
     process.exit(args.help ? 0 : 1);
   }
 
+  // Primera ejecución sin .env (y no dry-run): asistente interactivo de configuración.
+  if (!args.dryRun) {
+    await ensureEnv();
+  }
+
   const mdPath = resolveMdPath(args.target);
-  console.log(`▶ Leyendo: ${mdPath}`);
+  console.log('▶ ' + t('reading', mdPath));
   const article = readArticle(mdPath);
   console.log(`  · title:  ${article.data.title}`);
   console.log(`  · slug:   ${article.data.slug}`);
@@ -108,18 +115,23 @@ async function main() {
   }
 
   const images = findLocalImages(body, article.data, article.baseDir);
-  console.log(`▶ Imágenes locales detectadas: ${images.length}`);
+  console.log('▶ ' + t('imagesDetected', images.length));
   for (const img of images) console.log(`  · ${img.rel}`);
 
   const processingConfig = buildProcessingConfig(article.data);
   const perImageMeta = article.data.images || {};
 
   const client = args.dryRun ? null : getClient();
-  if (args.dryRun) console.log('▶ DRY RUN — no se enviará nada a Ghost');
+  if (args.dryRun) {
+    console.log('▶ ' + t('dryRun'));
+  } else {
+    console.log('▶ ' + t('verifying'));
+    await verifyClient(client);
+  }
 
   let urlMap = new Map();
   if (images.length) {
-    console.log('▶ Procesando y subiendo imágenes...');
+    console.log('▶ ' + t('uploading'));
     urlMap = await uploadAll(client, images, {
       dryRun: args.dryRun,
       processingConfig,
@@ -135,29 +147,29 @@ async function main() {
     article.data.feature_image = urlMap.get(article.data.feature_image);
   }
 
-  console.log('▶ Renderizando markdown a HTML...');
+  console.log('▶ ' + t('rendering'));
   const html = render(body, {
     historicalDate: article.data.historical_date,
     historicalYear: article.data.historical_year,
     historicalDateClass: process.env.HISTORICAL_DATE_CLASS || 'historical-date'
   });
 
-  console.log(`▶ Creando/actualizando post (status=${article.data.status})...`);
+  console.log('▶ ' + t('upserting', article.data.status));
   const result = await upsertPost(client, article.data, html, { dryRun: args.dryRun });
 
   if (result.dryRun) {
-    console.log('\n=== DRY RUN — payload final ===');
+    console.log('\n=== ' + t('dryPayload') + ' ===');
     console.log(JSON.stringify({ ...result.payload, html: `[${html.length} chars]` }, null, 2));
     return;
   }
 
   const post = result.post;
-  console.log('\n✓ Listo.');
+  console.log('\n✓ ' + t('done'));
   console.log(`  · ID:    ${post.id}`);
   console.log(`  · URL:   ${post.url}`);
   if (post.status === 'draft') {
     const adminPreview = `${process.env.GHOST_URL.replace(/\/$/, '')}/ghost/#/editor/post/${post.id}`;
-    console.log(`  · Edita: ${adminPreview}`);
+    console.log(`  · ${t('labelEdit')} ${adminPreview}`);
   }
 }
 

@@ -24,9 +24,18 @@ You write in Markdown (in your editor, version-controlled if you like) and publi
 git clone https://github.com/OksigeniaSL/ghost-md-publisher.git
 cd ghost-md-publisher
 npm install
-cp .env.example .env
-# fill in .env
 ```
+
+### First run: guided setup
+
+The first time you run the publisher **without a `.env`**, an interactive wizard
+starts: it lets you **pick a language** (English, Español, Français, Deutsch,
+Português, Italiano, Nederlands), then asks for your **Ghost URL** and **Admin API
+Key**, and writes the `.env` for you. The whole CLI then speaks the language you
+chose. Before publishing, it also **verifies the connection** and gives a clear
+message if the URL or key are wrong.
+
+You can still create `.env` by hand (`cp .env.example .env`) if you prefer.
 
 ### Create the Admin API Key in Ghost
 
