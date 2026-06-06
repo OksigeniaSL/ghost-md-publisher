@@ -68,7 +68,10 @@ slug:         "article-title"
 excerpt:      "Short summary..."               # max 300 chars
 tags:         ["Technology", "Tutorials"]
 feature_image: ./encabezado.png
+feature_image_caption: "Caption under the feature image"   # optional, light HTML
+feature_image_alt:     "Alt text for SEO/accessibility"    # optional, max 191 chars
 status:       draft                            # draft | published | scheduled
+published_at: "2026-04-02T09:00:00.000Z"       # required only when status: scheduled (ISO 8601)
 author:       jane-doe                         # optional, author slug in Ghost
 # authors:    [jane-doe, john-roe]             # alternative for co-bylines (overrides `author`)
 template:     custom-wide-feature-image        # optional — slug of a custom-*.hbs in the theme
@@ -149,6 +152,11 @@ The command returns the public URL of the post (if published) and the Ghost edit
 | `--help`, `-h` | Help. |
 | `DEBUG=1` (env) | Full stack traces on errors. |
 
+### Utilities
+
+- `node scripts/audit-authors.js` — lists the authors in your Ghost (handy to find the exact `author` slug to use in the front-matter).
+- `npm run test:dry -- ./my-article/` — shortcut for a dry run · `npm run publish -- ./my-article/` to publish.
+
 ---
 
 ## Environment variables (`.env`)
@@ -158,6 +166,7 @@ The command returns the public URL of the post (if published) and the Ghost edit
 | `GHOST_URL` | Ghost site URL (no trailing slash). |
 | `GHOST_ADMIN_API_KEY` | Admin API key, format `id:secret`. |
 | `GHOST_API_VERSION` | Admin API version (default `v5.0`). |
+| `CLI_LANG` | CLI language: `en`, `es`, `fr`, `de`, `pt`, `it`, `nl` (default `en`; set by the first-run wizard). |
 | `DEFAULT_AUTHOR_SLUG` | Fallback author when a piece doesn't set `author`. |
 | `IMAGE_COPYRIGHT`, `IMAGE_ARTIST` | Optional EXIF metadata for uploaded images. |
 | `HISTORICAL_DATE_CLASS` | CSS class for the historical-date block (default `historical-date`). |
