@@ -21,6 +21,10 @@
   ],
   "author": "Oksigenia",
   "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/OksigeniaSL/ghost-md-publisher.git" },
+  "homepage": "https://github.com/OksigeniaSL/ghost-md-publisher#readme",
+  "bugs": { "url": "https://github.com/OksigeniaSL/ghost-md-publisher/issues" },
+  "files": ["publish.js", "lib/", "scripts/", ".env.example", "README.md", "LICENSE"],
   "engines": {
     "node": ">=18"
   },
