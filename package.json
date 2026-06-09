@@ -4,7 +4,7 @@
   "description": "Publish articles to Ghost from a Markdown file with YAML front-matter: processes images (resize + format + EXIF), supports native Ghost cards (Product Card, video embeds, image captions) and creates or updates the post via the Admin API.",
   "main": "publish.js",
   "bin": {
-    "ghost-publish": "./publish.js"
+    "ghost-publish": "publish.js"
   },
   "scripts": {
     "publish": "node publish.js",
@@ -21,10 +21,22 @@
   ],
   "author": "Oksigenia",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/OksigeniaSL/ghost-md-publisher.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OksigeniaSL/ghost-md-publisher.git"
+  },
   "homepage": "https://github.com/OksigeniaSL/ghost-md-publisher#readme",
-  "bugs": { "url": "https://github.com/OksigeniaSL/ghost-md-publisher/issues" },
-  "files": ["publish.js", "lib/", "scripts/", ".env.example", "README.md", "LICENSE"],
+  "bugs": {
+    "url": "https://github.com/OksigeniaSL/ghost-md-publisher/issues"
+  },
+  "files": [
+    "publish.js",
+    "lib/",
+    "scripts/",
+    ".env.example",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=18"
   },
