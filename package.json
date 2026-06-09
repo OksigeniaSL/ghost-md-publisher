@@ -8,7 +8,6 @@
     "ghost-publish": "publish.js"
   },
   "scripts": {
-    "publish": "node publish.js",
     "test:dry": "node publish.js --dry-run"
   },
   "keywords": [

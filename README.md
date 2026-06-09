@@ -155,7 +155,7 @@ The command returns the public URL of the post (if published) and the Ghost edit
 ### Utilities
 
 - `node scripts/audit-authors.js` — lists the authors in your Ghost (handy to find the exact `author` slug to use in the front-matter).
-- `npm run test:dry -- ./my-article/` — shortcut for a dry run · `npm run publish -- ./my-article/` to publish.
+- `npm run test:dry -- ./my-article/` — shortcut for a dry run (or `ghost-publish --dry-run ./my-article/`).
 
 ---
 
