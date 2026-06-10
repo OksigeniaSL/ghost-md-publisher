@@ -20,6 +20,16 @@ You write in Markdown (in your editor, version-controlled if you like) and publi
 
 ## Installation
 
+### Recommended: global install from npm
+
+```bash
+npm install -g @oksigenia/ghost-md-publisher
+```
+
+This gives you the `ghost-publish` command anywhere.
+
+### Alternative: from source
+
 ```bash
 git clone https://github.com/OksigeniaSL/ghost-md-publisher.git
 cd ghost-md-publisher
