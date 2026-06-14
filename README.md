@@ -4,6 +4,8 @@ A Node.js CLI to publish to **Ghost** from a `.md` file with YAML front-matter. 
 
 If the slug already exists, it **updates** the existing post instead of duplicating it.
 
+> 🎨 **Built by the team behind [Xpresiva](https://xpresiva.com)** — a premium Ghost theme: three editions in one (Newspaper · Magazine · Blog), real built-in multilingual support and a privacy-first, accessible design. This publisher is its free, open-source companion. **[See the theme →](https://xpresiva.com)**
+
 ---
 
 ## Why it exists
@@ -211,7 +213,19 @@ If the slug already exists, it runs `posts.edit` and **preserves the original st
 - [ ] Validate tags against existing ones in Ghost (warn before creating new ones).
 - [ ] Feature video upload.
 - [ ] `members-only` / paywall support from front-matter.
-- [ ] Global install (`npm install -g`).
+
+---
+
+## From the makers — Xpresiva
+
+This tool is free and MIT, built by [Oksigenia](https://oksigenia.com) as the companion to **[Xpresiva](https://xpresiva.com)**, a premium Ghost theme for people who publish seriously:
+
+- **Three editions in one** — Newspaper, Magazine and Blog, switchable from settings.
+- **Real multilingual** — not just 1:1 translations: independent editorial lines per language (a correspondent in Rome writing in Italian, one in Paris in French…), with per-post `hreflang`.
+- **Privacy-first & accessible** — self-hosted fonts, no Google Fonts, no tracking cookies, AA contrast and visible keyboard focus throughout.
+- **One year of updates, ethical email support**, and a published EULA.
+
+Live demos and the full guide at **[xpresiva.com](https://xpresiva.com)**.
 
 ---
 

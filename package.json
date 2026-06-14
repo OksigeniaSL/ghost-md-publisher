@@ -1,6 +1,6 @@
 {
   "name": "@oksigenia/ghost-md-publisher",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "publishConfig": { "access": "public" },
   "description": "Publish articles to Ghost from a Markdown file with YAML front-matter: processes images (resize + format + EXIF), supports native Ghost cards (Product Card, video embeds, image captions) and creates or updates the post via the Admin API.",
   "main": "publish.js",
@@ -46,8 +46,5 @@
     "gray-matter": "^4.0.3",
     "markdown-it": "^14.1.0",
     "sharp": "^0.33.5"
-  },
-  "overrides": {
-    "axios": ">=1.17.0"
   }
 }
