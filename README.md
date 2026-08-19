@@ -1,6 +1,6 @@
 # ghost-md-publisher
 
-A Node.js CLI to publish to **Ghost** from a `.md` file with YAML front-matter. It uploads images (processed with `sharp` — resize, optimization, format, EXIF), supports native Ghost cards (Product Card, video embeds, image captions) and creates the post as a **draft** via the Admin API.
+A Node.js CLI to publish to **Ghost** from a `.md` file with YAML front-matter. It uploads images (processed with `sharp` — resize, optimization, format, EXIF), supports native Ghost cards (Product Card, video embeds, bookmarks, callouts, image captions) and creates the post as a **draft** via the Admin API.
 
 If the slug already exists, it **updates** the existing post instead of duplicating it.
 
@@ -125,6 +125,8 @@ images:
 
 - **Image captions:** `![caption](./image.png)` becomes a Ghost `figure` with a `figcaption` (the alt text is used as the caption). Without alt text, the image renders with no caption.
 - **Video embed:** `::video <url>` on its own line → an embed from **YouTube** (including **Shorts**, rendered vertical 9:16), **Vimeo**, **Odysee** (watch or embed URL) and **Rumble** (embed URL). With a caption: `::video <url> | My caption`. Handy for independent press publishing on alternative platforms.
+- **Bookmark card:** `::bookmark <url>` on its own line → a native Ghost `bookmark` card. The tool fetches the link's OpenGraph metadata (title, description, image, site name) so the card is rich, the same as pasting a URL in the editor. If the fetch fails, it degrades to a plain link.
+- **Callouts:** Obsidian-style `> [!type] title` (with `>` body lines) → a native Ghost `callout` card. Types map to an emoji + colour: `note`, `info`, `tip`, `important`, `success`, `question`, `warning`, `failure`, `danger`, `bug`, `quote`, and more. Inline Markdown inside the callout works. (Per-member/paid *visibility* of a callout lives in Ghost's editor model, not the HTML, so it isn't set through this path yet.)
 - **Product Card:** the `ad` block in the front-matter generates a native Ghost `kg-product-card`, with star rating and an optional disclaimer.
 - **Historical date:** `historical_date` inserts a block at the top of the post (CSS class configurable via `HISTORICAL_DATE_CLASS`), meant for the theme to display in place of the publish date.
 
@@ -149,8 +151,11 @@ To disable processing for a piece: `processing.enabled: false`.
 # Dry run — sends nothing, prints the payload that would be sent
 ghost-publish --dry-run ./my-article/
 
-# Publish (creates a draft, or updates if the slug already exists)
+# Publish (creates a draft; if the slug already exists, stops and asks — see below)
 ghost-publish ./my-article/
+
+# Overwrite an existing post with the same slug on purpose
+ghost-publish --force ./my-article/
 
 # Also works on a single file
 ghost-publish ./my-article/articulo.md
@@ -161,8 +166,17 @@ The command returns the public URL of the post (if published) and the Ghost edit
 | Flag | Effect |
 |---|---|
 | `--dry-run`, `-n` | Sends nothing to Ghost. Prints the final payload. |
+| `--force`, `--overwrite` | Overwrite an existing post with the same slug (see the guard below). |
 | `--help`, `-h` | Help. |
 | `DEBUG=1` (env) | Full stack traces on errors. |
+
+### Duplicate-slug guard
+
+Publishing matches posts **by slug**: if a post with the same slug already exists, the
+tool updates it. To avoid silently overwriting an old, forgotten post, a pre-publish
+check now stops by default when the slug already exists, showing the existing title and
+status. Pass `--force` (or `--overwrite`) to update it on purpose. New slugs are created
+as usual.
 
 ### Utilities
 
@@ -212,7 +226,8 @@ If the slug already exists, it runs `posts.edit` and **preserves the original st
 - [ ] `--watch` — re-publish on `.md` change.
 - [ ] Validate tags against existing ones in Ghost (warn before creating new ones).
 - [ ] Feature video upload.
-- [ ] `members-only` / paywall support from front-matter.
+- [ ] More cards (callouts and bookmarks shipped in 0.3.0; toggle/gallery next).
+- [ ] Per-card visibility (member/paid) for callouts — needs Lexical output, not HTML.
 
 ---
 

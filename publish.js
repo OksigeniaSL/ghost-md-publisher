@@ -10,16 +10,18 @@ const { getClient, verifyClient } = require('./lib/ghost-client');
 const { readArticle } = require('./lib/frontmatter');
 const { findLocalImages, uploadAll, rewriteContent } = require('./lib/images');
 const { render } = require('./lib/markdown');
+const { resolveBookmarks } = require('./lib/bookmarks');
 const { upsertPost } = require('./lib/posts');
 const { renderAd } = require('./lib/ad');
 const { ensureEnv } = require('./lib/setup');
 const { t } = require('./lib/i18n');
 
 function parseArgs(argv) {
-  const args = { dryRun: false, target: null };
+  const args = { dryRun: false, force: false, target: null };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run' || a === '-n') args.dryRun = true;
+    else if (a === '--force' || a === '--overwrite') args.force = true;
     else if (a === '--help' || a === '-h') args.help = true;
     else if (!args.target) args.target = a;
   }
@@ -27,9 +29,15 @@ function parseArgs(argv) {
 }
 
 function usage() {
-  console.log(`Uso: ghost-publish [--dry-run] <ruta-a-articulo.md | ruta-a-carpeta>
+  console.log(`Uso: ghost-publish [--dry-run] [--force] <ruta-a-articulo.md | ruta-a-carpeta>
 
 Si pasas una carpeta, busca dentro 'articulo.md'.
+
+Flags:
+  --dry-run, -n           No envía nada a Ghost; imprime el payload final.
+  --force, --overwrite    Sobrescribe un post existente con el mismo slug.
+                          Sin este flag, si el slug ya existe se avisa y se aborta
+                          (protege contra machacar un post viejo sin querer).
 
 Front-matter típico:
   ---
@@ -147,6 +155,8 @@ async function main() {
     article.data.feature_image = urlMap.get(article.data.feature_image);
   }
 
+  body = await resolveBookmarks(body);
+
   console.log('▶ ' + t('rendering'));
   const html = render(body, {
     historicalDate: article.data.historical_date,
@@ -155,12 +165,19 @@ async function main() {
   });
 
   console.log('▶ ' + t('upserting', article.data.status));
-  const result = await upsertPost(client, article.data, html, { dryRun: args.dryRun });
+  const result = await upsertPost(client, article.data, html, { dryRun: args.dryRun, force: args.force });
 
   if (result.dryRun) {
     console.log('\n=== ' + t('dryPayload') + ' ===');
     console.log(JSON.stringify({ ...result.payload, html: `[${html.length} chars]` }, null, 2));
     return;
+  }
+
+  if (result.blocked) {
+    const e = result.existing;
+    console.error('\n✗ ' + t('overwriteBlocked', e.slug, e.title, e.status));
+    console.error('  ' + t('overwriteHint'));
+    process.exit(1);
   }
 
   const post = result.post;
