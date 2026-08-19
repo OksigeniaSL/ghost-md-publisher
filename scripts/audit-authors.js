@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-require('dotenv').config({ path: require('path').resolve(__dirname, '..', '.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '..', '.env'), quiet: true });
 const GhostAdminAPI = require('@tryghost/admin-api');
 
 const api = new GhostAdminAPI({
