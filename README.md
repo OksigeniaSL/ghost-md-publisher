@@ -22,6 +22,8 @@ You write in Markdown (in your editor, version-controlled if you like) and publi
 
 ## Installation
 
+> **Requires Node.js 20.9 or newer** (needed by `sharp` 0.35+, which ships the patched image libraries).
+
 ### Recommended: global install from npm
 
 ```bash

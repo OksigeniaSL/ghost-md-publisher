@@ -1,6 +1,6 @@
 {
   "name": "@oksigenia/ghost-md-publisher",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publishConfig": { "access": "public" },
   "description": "Publish articles to Ghost from a Markdown file with YAML front-matter: processes images (resize + format + EXIF), supports native Ghost cards (Product Card, video embeds, image captions) and creates or updates the post via the Admin API.",
   "main": "publish.js",
@@ -38,13 +38,13 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=20.9.0"
   },
   "dependencies": {
     "@tryghost/admin-api": "^1.14.10",
     "dotenv": "^16.4.5",
     "gray-matter": "^4.0.3",
     "markdown-it": "^14.1.0",
-    "sharp": "^0.33.5"
+    "sharp": "^0.35.0"
   }
 }
