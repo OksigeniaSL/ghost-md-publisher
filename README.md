@@ -185,6 +185,20 @@ as usual.
 - `node scripts/audit-authors.js` — lists the authors in your Ghost (handy to find the exact `author` slug to use in the front-matter).
 - `npm run test:dry -- ./my-article/` — shortcut for a dry run (or `ghost-publish --dry-run ./my-article/`).
 
+### Programmatic use (library)
+
+The internals are also published as importable modules, so you can build on top of the same
+building blocks the CLI uses (e.g. from another tool or an integration):
+
+```js
+const { getClient, verifyClient } = require('@oksigenia/ghost-md-publisher/lib/ghost-client');
+const { upsertPost } = require('@oksigenia/ghost-md-publisher/lib/posts');
+const { render } = require('@oksigenia/ghost-md-publisher/lib/markdown');
+const { resolveBookmarks } = require('@oksigenia/ghost-md-publisher/lib/bookmarks');
+const { processImage } = require('@oksigenia/ghost-md-publisher/lib/image-processing');
+const { findLocalImages, uploadAll, rewriteContent } = require('@oksigenia/ghost-md-publisher/lib/images');
+```
+
 ---
 
 ## Environment variables (`.env`)

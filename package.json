@@ -1,11 +1,17 @@
 {
   "name": "@oksigenia/ghost-md-publisher",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "publishConfig": { "access": "public" },
-  "description": "Publish articles to Ghost from a Markdown file with YAML front-matter: processes images (resize + format + EXIF), supports native Ghost cards (Product Card, video embeds, image captions) and creates or updates the post via the Admin API.",
+  "description": "Publish articles to Ghost from a Markdown file with YAML front-matter: processes images (resize + format + EXIF), supports native Ghost cards (Product Card, video embeds, bookmarks, callouts, image captions) and creates or updates the post via the Admin API.",
   "main": "publish.js",
   "bin": {
     "ghost-publish": "publish.js"
+  },
+  "exports": {
+    ".": "./publish.js",
+    "./lib/*": "./lib/*.js",
+    "./lib/*.js": "./lib/*.js",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "test:dry": "node publish.js --dry-run"
