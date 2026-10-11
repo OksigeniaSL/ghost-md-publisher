@@ -1,0 +1,57 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Gitleaks (pinned, checksum-verified)
+        run: |
+          set -euo pipefail
+          VER=8.21.2
+          SHA=5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba
+          curl -sSL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${VER}/gitleaks_${VER}_linux_x64.tar.gz"
+          echo "${SHA}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+      - name: Scan full history
+        run: gitleaks detect --source . --redact --no-banner
+
+  no-ai-signoff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject AI credit in new commit messages
+        env:
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          forbidden='(<noreply@anthropic\.com>|^Claude-Session:|^Co-Authored-By:.*\bClaude\b|Generated with \[|claude\.ai/code/)'
+          if [ -n "${BASE:-}" ]; then
+            range="${BASE}..HEAD"
+          elif [ -n "${BEFORE:-}" ] && [ "${BEFORE}" != "0000000000000000000000000000000000000000" ] && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            range="${BEFORE}..HEAD"
+          else
+            range="HEAD~1..HEAD"
+          fi
+          echo "Checking range: $range"
+          bad=$(git log --format='%H %an <%ae>%n%B' "$range" | grep -nEi "$forbidden" || true)
+          if [ -n "$bad" ]; then
+            echo "This commit message credits a tool:"
+            echo "$bad"
+            exit 1
+          fi
+          echo "clean"

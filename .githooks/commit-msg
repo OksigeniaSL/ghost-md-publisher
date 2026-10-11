@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# No commit credits a tool.
+#
+# A rule that lives only in a document holds while someone remembers it;
+# written here it enforces itself. The place matters: this runs in the hook,
+# not only in CI, because a trailer caught in CI is already in the author's
+# local history and removing it costs a rewrite. Caught here, it never exists.
+#
+# Installed by pointing core.hooksPath at this folder: Node repos do it from
+# the package.json "prepare" script on `npm install`; elsewhere run once
+#   git config core.hooksPath .githooks
+# A second lock runs in CI (.github/workflows/checks.yml) in case someone
+# commits with --no-verify. The rule and its reason live in
+# shared/publicacion-github.md of the Oksigenia hq repo.
+
+msg="$1"
+
+# What may not appear, and why each one:
+#   Co-Authored-By: … <noreply@anthropic.com>   a tool as co-author
+#   Claude-Session: …                            a tool's notebook link
+#   Generated with [ …                           the generation footer
+#   claude.ai/code/…                             a link to that notebook
+# Note the first: Co-Authored-By is legitimate for a person who wrote code;
+# what is not allowed is the tool's address, so match the address, not the tag.
+forbidden='(<noreply@anthropic\.com>|^Claude-Session:|^Co-Authored-By:.*\bClaude\b|Generated with \[|claude\.ai/code/)'
+
+offending=$(grep -nEi "$forbidden" "$msg")
+
+if [ -n "$offending" ]; then
+	cat >&2 <<-END
+
+	  x This commit message credits a tool, and we don't do that here.
+
+	$(printf '%s\n' "$offending" | sed 's/^/      /')
+
+	  Remove those lines and commit again. The rule and its reason are in
+	  shared/publicacion-github.md (Oksigenia hq).
+
+	END
+	exit 1
+fi
+
+exit 0
